@@ -49,12 +49,48 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="max-w-md w-full mx-auto p-4 flex-grow flex flex-col justify-center">
 
-        <!-- TELA 1: MENU DE SELEÇÃO DE EQUIPAMENTO -->
+        <!-- TELA 1: MENU PRINCIPAL DE SELEÇÃO E SENHAS -->
         <div id="screen-home" class="space-y-4">
             <div class="bg-blue-950/40 border border-blue-900/60 p-4 rounded-xl mb-4">
                 <p class="text-sm text-blue-200">🔍 Escaneie o QR Code no ativo ou selecione abaixo para iniciar o diagnóstico rápido:</p>
             </div>
 
+            <!-- SETOR DE CREDENCIAIS / SENHAS (EXPANDÍVEL NA TELA INICIAL) -->
+            <div class="bg-industrial-card border-2 border-amber-600/60 rounded-xl overflow-hidden shadow-lg">
+                <button onclick="togglePasswords()" class="w-full p-4 text-left hover:bg-slate-800 transition flex items-center justify-between touch-target">
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-amber-400 font-semibold">Credenciais do Sistema</span>
+                        <h2 class="text-lg font-bold text-amber-100">Senhas dos Painéis Elétricos</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🔑</span>
+                        <span id="pass-arrow" class="text-amber-400 text-xs transition-transform duration-200">▼</span>
+                    </div>
+                </button>
+
+                <!-- CONTEÚDO EXPANDÍVEL -->
+                <div id="passwords-box" class="hidden p-4 pt-0 border-t border-slate-800 space-y-3 bg-slate-900/40">
+                    <!-- Desembarque Internacional -->
+                    <div class="border-l-2 border-amber-500 pl-3 py-1 mt-3">
+                        <span class="text-xs text-slate-400 font-semibold uppercase">Desembarque Internacional</span>
+                        <div class="flex justify-between text-sm font-mono mt-1">
+                            <span class="text-slate-300">Login: <strong class="text-emerald-400">Beumer</strong></span>
+                            <span class="text-slate-300">Senha: <strong class="text-amber-400">12345</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Desembarque Doméstico -->
+                    <div class="border-l-2 border-blue-500 pl-3 py-1">
+                        <span class="text-xs text-slate-400 font-semibold uppercase">Desembarque Doméstico</span>
+                        <div class="flex justify-between text-sm font-mono mt-1">
+                            <span class="text-slate-300">Login: <strong class="text-emerald-400">fraport</strong></span>
+                            <span class="text-slate-300">Senha: <strong class="text-amber-400">12345</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ATIVOS PARA DIAGNÓSTICO -->
             <button onclick="selectEquipment('vsu')" class="w-full bg-industrial-card hover:bg-slate-800 border-2 border-slate-700 hover:border-blue-500 p-4 rounded-xl text-left transition flex items-center justify-between touch-target shadow-lg">
                 <div>
                     <span class="text-xs uppercase tracking-widest text-blue-400 font-semibold">Ativo 01</span>
@@ -87,6 +123,11 @@
             </button>
 
             <div id="equipment-title-box" class="bg-industrial-card p-4 rounded-xl border border-slate-800">
+                <!-- Preenchido via JS -->
+            </div>
+
+            <!-- BOTÃO DO MANUAL MECÂNICO GERAL -->
+            <div id="manual-container">
                 <!-- Preenchido via JS -->
             </div>
 
@@ -125,6 +166,8 @@
         const db = {
             vsu: {
                 name: "VSU (Distribuidor Vertical)",
+                manualLink: "https://fraportbrasil-my.sharepoint.com/:f:/g/personal/g_senna_fraport-brasil_com/EjGSfBjcERJHsUbGWU4dJTYB85T36Ov88rVXdRfNPY8Byg?e=lLp7Gl",
+                manualName: "Manual Mecânico Geral",
                 symptoms: [
                     { title: "Mala travada no topo / bloqueio de esteira", action: "1. Remova a mala com cuidado e desobstrua o sensor.\n2. Execute o reset remoto no SCADA.\n3. Se persistir, acione o painel local." },
                     { title: "Falha de acionamento do elevador vertical", action: "1. Tente o ciclo remoto via SCADA.\n2. Verifique se o disjuntor do quadro elétrico desarmou.\n3. Chame a manutenção elétrica se houver falha mecânica." }
@@ -132,6 +175,8 @@
             },
             diverter: {
                 name: "Braço Desviador",
+                manualLink: "https://fraportbrasil-my.sharepoint.com/:f:/g/personal/g_senna_fraport-brasil_com/EjGSfBjcERJHsUbGWU4dJTYB85T36Ov88rVXdRfNPY8Byg?e=lLp7Gl",
+                manualName: "Manual Mecânico Geral",
                 symptoms: [
                     { title: "Mala presa embaixo do braço desviador", action: "1. Certifique-se da segurança e desenergização.\n2. Force manualmente a mala no sentido adequado com cuidado para desprender.\n3. Remova a bagagem da zona de bloqueio." },
                     { title: "Falha de posição (Não abre/fecha por completo)", action: "1. Tente o reset online pelo supervisório SCADA.\n2. Vá até o painel e acione a chave seletora.\n3. Observe o LED no SCADA: 🟢 Verde (Ok) | 🟡 Amarelo (Fora de posição) | 🔴 Vermelho (Falha de sensor)." }
@@ -139,12 +184,26 @@
             },
             m200: {
                 name: "Transportador de Correia (M200)",
+                manualLink: "https://fraportbrasil-my.sharepoint.com/:f:/g/personal/g_senna_fraport-brasil_com/EjGSfBjcERJHsUbGWU4dJTYB85T36Ov88rVXdRfNPY8Byg?e=lLp7Gl",
+                manualName: "Manual Mecânico Geral",
                 symptoms: [
                     { title: "Falha no Módulo M200 / Acionamento ou Contatora Colada", action: "1. Se o motor falhou internamente: Chame o técnico responsável.\n2. Se a contatora estiver colada (esteira não para): Efetue a substituição física do M200 ou da contatora." },
                     { title: "Mala travada por excesso de peso ou extremidades presas", action: "1. Destrave a mala das extremidades e retire da frente do sensor.\n2. Acione a opção MANUAL no M200 para testar integridade.\n3. Efetue o reset no SCADA e libere a linha." }
                 ]
             }
         };
+
+        function togglePasswords() {
+            const box = document.getElementById('passwords-box');
+            const arrow = document.getElementById('pass-arrow');
+            if (box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                box.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
 
         function startTimer() {
             clearInterval(timerInterval);
@@ -178,6 +237,19 @@
                     💡 <strong>1º Passo Obrigatório:</strong> Tente sempre o reset remoto via SCADA antes de se deslocar ao campo.
                 </div>
             `;
+
+            const manualContainer = document.getElementById('manual-container');
+            if (eq.manualLink) {
+                manualContainer.innerHTML = `
+                    <a href="${eq.manualLink}" target="_blank" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-blue-400 p-3 rounded-xl flex items-center justify-between transition shadow-md touch-target">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">⚙️</span>
+                            <span class="font-bold text-sm text-slate-100">${eq.manualName}</span>
+                        </div>
+                        <span class="text-xs bg-blue-600 text-white px-2 py-1 rounded font-semibold">Abrir Pasta ↗</span>
+                    </a>
+                `;
+            }
 
             let stepsHTML = `<p class="text-sm font-semibold text-slate-300 mt-2">Selecione o sintoma observado:</p>`;
             eq.symptoms.forEach((sym, index) => {
