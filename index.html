@@ -1,3 +1,38 @@
+
+Com certeza! Fiz todas as alterações solicitadas para deixar a aplicação mais completa, legível e robusta para uso em campo:
+
+### 🚀 O que foi adicionado e melhorado:
+
+1. **Painel de Histórico de Intervenções (Painel Lateral / Drawer):**
+* Adicionado um botão fixo **"📜 Histórico de Intervenções"** no topo da tela.
+* Ao clicar, abre um painel lateral retrátil (drawer) que grava em tempo real o **Equipamento**, o **Sintoma/Falha**, o **Tempo de MTTR** acumulado e o **Status** (Resolvido em verde ou Encaminhado em vermelho).
+* Possui funcionalidade de **limpar histórico** ou fechar para continuar navegando.
+
+
+2. **Aumento Geral da Tipografia e Distribuição:**
+* Aumentamos o tamanho de todas as fontes (títulos, botões, descrições e textos de credenciais) para facilitar a leitura em telas maiores ou tablets de campo.
+* Maior espaçamento e área de toque nos cards (`touch-target`).
+
+
+3. **Botão Vermelho "Problema não solucionado":**
+* Abaixo do botão verde de confirmação, foi adicionado um botão vermelho: **"❌ Problema não solucionado"**.
+* Ao clicar nele, o tempo do MTTR é parado e a tela exibe um alerta de ação imediata: **"Acionar Técnico BHS Responsável"**, registrando o atendimento como **Não Solucionado / Escalado** no histórico.
+
+
+
+---
+
+### Visualize a nova versão atualizada no navegador:
+
+index.html [generated with web_code_canvas tool]
+
+---
+
+### Código Completo do `index.html` para o GitHub
+
+Substitua o conteúdo do seu arquivo **`index.html`** no repositório por este código atualizado:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
@@ -216,4 +251,206 @@
 
         const db = {
             vsu: {
-                name: "VSU (Distribuidor Vertical
+                name: "VSU (Distribuidor Vertical)",
+                manualLink: "https://fraportbrasil-my.sharepoint.com/:f:/g/personal/g_senna_fraport-brasil_com/EjGSfBjcERJHsUbGWU4dJTYB85T36Ov88rVXdRfNPY8Byg?e=lLp7Gl",
+                manualName: "Manual Mecânico Geral",
+                symptoms: [
+                    { title: "Mala travada no topo / bloqueio de esteira", action: "1. Remova a mala com cuidado e desobstrua o sensor.\n2. Execute o reset remoto no SCADA.\n3. Se persistir, acione o painel local." },
+                    { title: "Falha de acionamento do elevador vertical", action: "1. Tente o ciclo remoto via SCADA.\n2. Verifique se o disjuntor do quadro elétrico desarmou.\n3. Chame a manutenção elétrica se houver falha mecânica." }
+                ]
+            },
+            diverter: {
+                name: "Braço Desviador",
+                manualLink: "https://fraportbrasil-my.sharepoint.com/:f:/g/personal/g_senna_fraport-brasil_com/EjGSfBjcERJHsUbGWU4dJTYB85T36Ov88rVXdRfNPY8Byg?e=lLp7Gl",
+                manualName: "Manual Mecânico Geral",
+                symptoms: [
+                    { title: "Mala presa embaixo do braço desviador", action: "1. Certifique-se da segurança e desenergização.\n2. Force manualmente a mala no sentido adequado com cuidado para desprender.\n3. Remova a bagagem da zona de bloqueio." },
+                    { title: "Falha de posição (Não abre/fecha por completo)", action: "1. Tente o reset online pelo supervisório SCADA.\n2. Vá até o painel e acione a chave seletora.\n3. Observe o LED no SCADA: 🟢 Verde (Ok) | 🟡 Amarelo (Fora de posição) | 🔴 Vermelho (Falha de sensor)." }
+                ]
+            },
+            m200: {
+                name: "Transportador de Correia (M200)",
+                manualLink: "https://fraportbrasil-my.sharepoint.com/:f:/g/personal/g_senna_fraport-brasil_com/EjGSfBjcERJHsUbGWU4dJTYB85T36Ov88rVXdRfNPY8Byg?e=lLp7Gl",
+                manualName: "Manual Mecânico Geral",
+                symptoms: [
+                    { title: "Falha no Módulo M200 / Acionamento ou Contatora Colada", action: "1. Se o motor falhou internamente: Chame o técnico responsável.\n2. Se a contatora estiver colada (esteira não para): Efetue a substituição física do M200 ou da contatora." },
+                    { title: "Mala travada por excesso de peso ou extremidades presas", action: "1. Destrave a mala das extremidades e retire da frente do sensor.\n2. Acione a opção MANUAL no M200 para testar integridade.\n3. Efetue o reset no SCADA e libere a linha." }
+                ]
+            }
+        };
+
+        function togglePasswords() {
+            const box = document.getElementById('passwords-box');
+            const arrow = document.getElementById('pass-arrow');
+            if (box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                box.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function toggleHistoryDrawer() {
+            const drawer = document.getElementById('history-drawer');
+            drawer.classList.toggle('translate-x-full');
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            secondsElapsed = 0;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+            const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+        }
+
+        function selectEquipment(key) {
+            currentEquipmentKey = key;
+            const eq = db[key];
+            startTimer();
+
+            document.getElementById('screen-home').classList.add('hidden');
+            document.getElementById('screen-diagnostic').classList.remove('hidden');
+            document.getElementById('screen-success').classList.add('hidden');
+
+            document.getElementById('equipment-title-box').innerHTML = `
+                <span class="text-xs text-purple-300 uppercase font-black tracking-widest">Diagnóstico Ativo</span>
+                <h2 class="text-xl font-bold text-white mt-1">${eq.name}</h2>
+                <div class="mt-3 bg-amber-500/10 border border-amber-500/40 p-3 rounded-xl text-xs text-amber-200 font-medium">
+                    💡 <strong>1º Passo Obrigatório:</strong> Tente sempre o reset remoto via SCADA antes de se deslocar ao campo.
+                </div>
+            `;
+
+            const manualContainer = document.getElementById('manual-container');
+            if (eq.manualLink) {
+                manualContainer.innerHTML = `
+                    <a href="${eq.manualLink}" target="_blank" class="w-full bg-purple-950/80 hover:bg-purple-900/80 border border-purple-500/50 p-4 rounded-2xl flex items-center justify-between transition shadow-lg touch-target backdrop-blur-md">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">⚙️</span>
+                            <span class="font-bold text-sm text-slate-100">${eq.manualName}</span>
+                        </div>
+                        <span class="text-xs bg-purple-700 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg font-bold">Abrir Pasta ↗</span>
+                    </a>
+                `;
+            }
+
+            let stepsHTML = `<p class="text-sm font-bold text-purple-200 mt-2">Selecione o sintoma observado:</p>`;
+            eq.symptoms.forEach((sym, index) => {
+                stepsHTML += `
+                    <div class="bg-slate-900/90 border-2 border-purple-500/40 hover:border-purple-300 p-5 rounded-2xl space-y-3 transition shadow-xl backdrop-blur-md">
+                        <h3 class="font-bold text-white text-base">${sym.title}</h3>
+                        <p class="text-xs text-purple-100/90 whitespace-pre-line bg-purple-950/60 p-4 rounded-xl border border-purple-900/50 font-sans leading-relaxed">${sym.action}</p>
+                        
+                        <div class="space-y-2 pt-2">
+                            <!-- BOTÃO VERDE: SOLUCIONADO -->
+                            <button onclick="finishProcess(true, '${sym.title.replace(/'/g, "\\'")}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl touch-target text-sm transition shadow-lg flex items-center justify-center gap-2">
+                                ✓ Problema Resolvido / Executado
+                            </button>
+
+                            <!-- BOTÃO VERMELHO: NÃO SOLUCIONADO -->
+                            <button onclick="finishProcess(false, '${sym.title.replace(/'/g, "\\'")}')" class="w-full bg-red-600/90 hover:bg-red-500 text-white font-bold py-3.5 rounded-xl touch-target text-sm transition shadow-lg flex items-center justify-center gap-2">
+                                ❌ Problema não solucionado
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('diagnostic-steps').innerHTML = stepsHTML;
+        }
+
+        function finishProcess(isResolved, symptomTitle) {
+            clearInterval(timerInterval);
+            const finalTimeStr = document.getElementById('timer-display').innerText;
+            const eqName = db[currentEquipmentKey].name;
+
+            // Salvar no Histórico
+            const logEntry = {
+                equipment: eqName,
+                symptom: symptomTitle,
+                time: finalTimeStr,
+                resolved: isResolved,
+                date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            historyLog.unshift(logEntry);
+            renderHistory();
+
+            // Configurar tela final
+            document.getElementById('screen-diagnostic').classList.add('hidden');
+            document.getElementById('screen-success').classList.remove('hidden');
+            document.getElementById('final-time').innerText = finalTimeStr;
+
+            const iconBox = document.getElementById('result-icon-container');
+            const titleBox = document.getElementById('result-title');
+            const descBox = document.getElementById('result-desc');
+
+            if (isResolved) {
+                iconBox.className = "w-24 h-24 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center mx-auto text-5xl text-emerald-400 shadow-emerald-950/50";
+                iconBox.innerText = "✓";
+                titleBox.className = "text-3xl font-black text-emerald-400";
+                titleBox.innerText = "Atendimento Concluído!";
+                descBox.innerText = "A falha foi sanada com sucesso e o ativo está liberado para operação.";
+            } else {
+                iconBox.className = "w-24 h-24 bg-red-500/20 border-2 border-red-500 rounded-full flex items-center justify-center mx-auto text-5xl text-red-500 shadow-red-950/50";
+                iconBox.innerText = "⚠️";
+                titleBox.className = "text-3xl font-black text-red-500";
+                titleBox.innerText = "Chamar Técnico BHS Responsável!";
+                descBox.innerHTML = "<strong class='text-red-400'>Ação Imediata Necessária:</strong> O procedimento de campo não resolveu a anomalia. Favor realizar a escalação presencial do técnico responsável.";
+            }
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            const badge = document.getElementById('history-badge');
+            badge.innerText = historyLog.length;
+
+            if (historyLog.length === 0) {
+                list.innerHTML = `<div id="empty-history" class="text-center py-12 text-purple-300/60 text-sm">Nenhuma intervenção registrada até o momento.</div>`;
+                return;
+            }
+
+            let html = '';
+            historyLog.forEach(item => {
+                const statusBadge = item.resolved 
+                    ? `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">✓ Resolvido</span>`
+                    : `<span class="bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">❌ Escalado</span>`;
+
+                html += `
+                    <div class="bg-purple-950/70 border border-purple-800 p-3.5 rounded-xl space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-purple-200">${item.equipment}</span>
+                            ${statusBadge}
+                        </div>
+                        <p class="text-slate-300 font-medium">${item.symptom}</p>
+                        <div class="flex justify-between text-[11px] text-purple-400 font-mono pt-1 border-t border-purple-900/50">
+                            <span>⏱ MTTR: <strong>${item.time}</strong></span>
+                            <span>🕒 ${item.date}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        function clearHistory() {
+            historyLog = [];
+            renderHistory();
+        }
+
+        function goHome() {
+            clearInterval(timerInterval);
+            document.getElementById('screen-home').classList.remove('hidden');
+            document.getElementById('screen-diagnostic').classList.add('hidden');
+            document.getElementById('screen-success').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
